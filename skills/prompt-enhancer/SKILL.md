@@ -1,154 +1,235 @@
 ---
 name: prompt-enhancer
-description: Use when a user provides any task or request. Enhances vague prompts into precise, actionable specifications by asking clarifying questions and adding missing context. Always runs before any other skill.
-when_to_use: At the start of every interaction, before executing any task. When a user prompt is vague, incomplete, or lacks critical context. When you need to understand what the user actually wants vs what they said.
+description: Use when a task description is vague, ambiguous, incomplete, or lacks critical context. Automatically enhances unclear prompts by filling gaps with reasonable assumptions. Only asks questions when context is truly impossible to infer. Never touches prompts that are already detailed enough.
+when_to_use: Any time the user's request is unclear, missing details, ambiguous, or could be interpreted multiple ways. Activates automatically when you detect insufficient context. Self-enhances first, asks questions only as last resort.
 allowed-tools:
   - Read
   - Write
   - Edit
-  - Glob
-  - Grep
   - TodoWrite
 arguments:
   - prompt
   - mode
-argument-hint: "[user-prompt] [auto|interactive]"
+argument-hint: "[original-prompt] [auto|ask-first|enhance-only]"
 ---
 
 # Prompt Enhancer
 
-Transform vague user requests into precise, actionable specifications. Never execute a poorly-defined task.
+Transform vague requests into precise, actionable specifications. Self-enhances first. Asks questions only when truly stuck. Never touches clear prompts.
 
 <HARD-GATE>
-Do NOT execute a task until the prompt has been enhanced and clarified. Do NOT assume context the user didn't provide. Do NOT skip asking questions when critical information is missing.
+Do NOT enhance prompts that are already clear and detailed. Do NOT ask questions if you can reasonably infer the intent. Do NOT execute unclear tasks without first enhancing or clarifying.
 </HARD-GATE>
 
 ## The Iron Law
 
-Every task must have: a clear goal, success criteria, constraints, and scope before execution begins.
+If the prompt is clear — execute directly. If unclear — enhance it yourself first. Only ask questions when enhancement is impossible.
 
-## When to Use
+## Decision Flow
 
-- **Always** — as the first step before any task execution
-- User provides a vague or one-line request
-- Task has ambiguous requirements
-- Missing critical context (scope, constraints, success criteria)
-- Multiple interpretations are possible
+```
+User Prompt
+    │
+    ▼
+┌─────────────────────┐
+│  Is it clear and    │
+│  detailed enough?   │
+└─────────────────────┘
+    │
+    ├── YES → Execute directly (skip enhancement entirely)
+    │
+    └── NO
+         │
+         ▼
+    ┌─────────────────────┐
+    │  Can I reasonably   │
+    │  infer the intent   │
+    │  and fill gaps?     │
+    └─────────────────────┘
+         │
+         ├── YES → Self-enhance the prompt, show enhanced version, execute
+         │
+         └── NO
+              │
+              ▼
+         ┌─────────────────────┐
+         │  Ask 1-3 targeted   │
+         │  questions with     │
+         │  multiple-choice    │
+         │  options            │
+         └─────────────────────┘
+```
 
-## When NOT to Use
+## Step 1: Clarity Check
 
-- User has already provided a detailed, complete specification
-- Task is trivially simple and unambiguous
+Evaluate the prompt against this checklist:
 
-## The Process
+```
+Clarity Score (8 points):
+[ ] Goal is specific and unambiguous (0-2 points)
+[ ] Scope is defined — files, components, areas (0-2 points)
+[ ] Constraints stated — quality, time, resources (0-1 points)
+[ ] Context sufficient — background, related info (0-2 points)
+[ ] Success criteria clear (0-1 points)
 
-### Phase 1: Analyze the Prompt
+Total: X/8
+```
 
-1. **Identify what's missing**
-   Check each dimension:
-   - **Goal**: What exactly are we trying to achieve?
-   - **Scope**: What's in/out of scope?
-   - **Constraints**: Time, resources, technology, dependencies?
-   - **Success criteria**: How do we know it's done and correct?
-   - **Context**: What existing code/system does this touch?
-   - **Audience**: Who is this for?
-   - **Format**: What should the output look like?
+| Score | Decision |
+|-------|----------|
+| **7-8** | CLEAR → Execute directly. No enhancement. No questions. |
+| **5-6** | ENHANCEABLE → Self-enhance with reasonable assumptions. Show enhanced version. Execute. |
+| **3-4** | AMBIGUOUS → Try to self-enhance. If you can't, ask 1-3 questions. |
+| **0-2** | UNCLEAR → Ask 1-3 targeted questions with options. |
 
-2. **Classify prompt quality**
-   | Quality | Description | Action |
-   |---------|-------------|--------|
-   | **Complete** | All dimensions covered | Execute directly |
-   | **Partial** | Some dimensions missing | Ask 1-3 questions |
-   | **Vague** | Most dimensions missing | Ask 3-5 questions |
-   | **Unclear** | Can't determine intent | Ask clarifying questions |
+## Step 2: Self-Enhance (If Score 3-6)
 
-### Phase 2: Ask Clarifying Questions
+If the prompt is unclear but you can reasonably infer intent:
 
-3. **Ask questions strategically**
-   - Ask **one question at a time** (don't overwhelm)
-   - Ask the **most critical question first** (the one that changes everything)
-   - Provide **suggested answers** (multiple choice when possible)
-   - Explain **why you're asking** (so the user understands the impact)
+1. **Fill gaps with reasonable assumptions**
+   - Use project context to infer missing details
+   - Use common patterns to fill in specifics
+   - Use existing codebase structure to determine scope
 
-4. **Question priority order**
-   1. What's the actual goal? (if unclear)
-   2. What's the scope? (if unbounded)
-   3. What are the constraints? (if unconstrained)
-   4. What does success look like? (if undefined)
-   5. What existing context should I know? (if unknown)
-
-### Phase 3: Enhance the Prompt
-
-5. **Rewrite the prompt**
-   Take the user's original request + answers → produce an enhanced specification:
-
+2. **Create the enhanced specification**
    ```
    Enhanced Task Specification:
-   ├── Original Request: [what the user said]
-   ├── Enhanced Goal: [precise, measurable goal]
-   ├── Scope: [what's in, what's out]
-   ├── Constraints: [time, tech, resources]
-   ├── Success Criteria: [how we know it's done]
-   ├── Context: [existing code/system info]
-   ├── Output Format: [what deliverables]
-   └── Execution Plan: [phases, subagents, workflow]
+
+   Original: "[user's original request]"
+
+   Enhanced:
+   - Goal: [specific, unambiguous goal]
+   - Scope: [files, components, areas involved]
+   - Constraints: [quality, time, resource limits]
+   - Context: [relevant background information]
+   - Success Criteria: [how we'll know it's done right]
+   - Assumptions Made: [what I inferred and why]
+
+   Proceeding with this understanding. Let me know if anything is wrong.
    ```
 
-6. **Confirm with the user**
-   - Present the enhanced specification
-   - Ask "Does this capture what you want?"
-   - Adjust based on feedback
+3. **Execute immediately** — don't wait for confirmation unless the assumptions are risky
 
-### Phase 4: Hand Off to Workflow
+## Step 3: Ask Questions (Only If Score 0-2 OR Self-Enhance Failed)
 
-7. **Pass enhanced spec to task-decomposer**
-   - The task-decomposer will break it into phases
-   - Subagents will be assigned to parallel work
-   - The workflow engine will execute
+Only ask questions when you truly cannot infer the intent:
 
-## Question Templates
+**Question Format:**
+```
+I need to clarify a few things before I proceed:
 
-### For Research Tasks
-- "What's the depth you need? (quick overview / standard analysis / deep dive)"
-- "What specific aspects are most important?"
-- "What will you use this research for?"
+1. [Specific question about the critical gap]
+   - Option A: [most likely interpretation]
+   - Option B: [alternative interpretation]
+   - Other: [let me specify]
 
-### For Build Tasks
-- "What's the tech stack?"
-- "Are there existing systems to integrate with?"
-- "What's the minimum viable version vs full version?"
-- "Any performance or scalability requirements?"
+[Max 3 questions — only ask about critical gaps]
+```
 
-### For Fix Tasks
-- "What's the exact symptom?"
-- "When did it start happening?"
-- "What changed recently?"
-- "What's the impact (blocking / annoying / cosmetic)?"
+**Question Rules:**
+- Ask MAX 3 questions — only about critical gaps
+- Provide options — don't make the user write from scratch
+- Be specific — "Which file?" not "What do you mean?"
+- Explain WHY you're asking — "I need to know X so I can Y"
+- If user doesn't respond, proceed with best assumption
 
-### For Design Tasks
-- "Who is the target audience?"
-- "What are the key user flows?"
-- "Are there existing design patterns to follow?"
-- "What's the timeline?"
+## Modes
+
+| Mode | Behavior | When to Use |
+|------|----------|-------------|
+| **auto** (default) | Self-enhances unclear prompts, asks only if stuck | Normal use |
+| **ask-first** | Always asks questions before enhancing | When precision is critical |
+| **enhance-only** | Only self-enhances, never asks questions | When you want fast execution |
+
+## Examples
+
+### Example 1: Clear Prompt (Score 8/8) — Skip Entirely
+
+**User**: "Refactor src/auth/login.ts to use the new JWT library from src/auth/jwt.ts. Keep the same API surface. Add unit tests in src/auth/__tests__/login.test.ts. Target: 90% coverage."
+
+**Enhancer**: Score 8/8 — Clear and detailed. Executing directly.
+
+### Example 2: Vague but Enhanceable (Score 4/8) — Self-Enhance
+
+**User**: "Fix the auth bug"
+
+**Enhancer**: Score 4/8 — Vague but I can infer from context.
+
+```
+Enhanced Task Specification:
+
+Original: "Fix the auth bug"
+
+Enhanced:
+- Goal: Fix the authentication bug causing login failures
+- Scope: src/auth/login.ts and related auth files
+- Constraints: Maintain existing API, no breaking changes
+- Context: Based on recent changes to auth flow
+- Success Criteria: Login works, tests pass, no regressions
+- Assumptions Made: Assuming this refers to the recent login timeout issue. If it's a different bug, let me know.
+
+Proceeding with investigation and fix.
+```
+
+### Example 3: Too Ambiguous (Score 1/8) — Ask Questions
+
+**User**: "Make it faster"
+
+**Enhancer**: Score 1/8 — Cannot infer what "it" refers to or what "faster" means.
+
+```
+I need to clarify before I proceed:
+
+1. What should be faster?
+   - The page load time?
+   - The API response time?
+   - The database queries?
+   - Something else?
+
+2. What's the current performance and what's the target?
+   - Current: [unknown] → Target: [unknown]
+
+2 questions — I need these to optimize the right thing.
+```
+
+### Example 4: Partially Clear (Score 6/8) — Self-Enhance
+
+**User**: "Add rate limiting to the API endpoints"
+
+**Enhancer**: Score 6/8 — Clear goal, missing specifics. Self-enhancing.
+
+```
+Enhanced Task Specification:
+
+Original: "Add rate limiting to the API endpoints"
+
+Enhanced:
+- Goal: Add rate limiting to prevent API abuse
+- Scope: All API endpoint handlers in src/api/
+- Constraints: Use sliding window algorithm, configurable limits
+- Context: Standard rate limiting patterns
+- Success Criteria: Rate limits enforced, tests pass, no impact on legitimate traffic
+- Assumptions Made: Using 100 requests/minute per IP as default. Configurable via environment variables.
+
+Proceeding with implementation.
+```
 
 ## Anti-Slop Rules
 
 <Good>
-- "To make sure I build exactly what you need: should this be a quick prototype or production-ready?"
-- "I see three possible interpretations. Which matches your intent: A, B, or C?"
-- "Before I start: what's the most important outcome from this task?"
+- "Score 8/8 — Clear. Executing directly."
+- "Score 5/8 — Self-enhancing with reasonable assumptions: [list]. Proceeding."
+- "Score 2/8 — Cannot infer intent. Asking 2 questions: [questions]"
 </Good>
 
 <Bad>
-- Starting execution without clarifying
-- Assuming the user's intent
-- Asking 10 questions at once
-- Asking questions whose answers are obvious from context
+- "What do you mean?" (too vague, no options)
+- Enhancing a prompt that's already clear (waste of time)
+- Asking 5+ questions (overwhelming)
+- Executing without checking clarity on vague prompts
+- "I think you mean X" without showing the enhanced spec
 </Bad>
 
 ## Integration
 
-This skill runs **automatically before every task**. It feeds into:
-- `task-decomposer` — breaks enhanced spec into phases and subagents
-- `agent-os-master` — orchestrates the full workflow
-- `ralph-loop` — provides clear success criteria for iteration
+Related skills: `agent-os-master`, `deep-research`, `problem-decomposition`, `context-manager`, `communication-design`
