@@ -1,34 +1,24 @@
 import json
-import time
-import copy
-import hashlib
-from typing import Dict, List, Optional, Tuple, Set, Any
+from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict
-
-from workflow_validator import WorkflowValidator, ValidationResult
-from workflow_metrics import WorkflowMetricsCollector
-from workflow_rollback import RollbackManager
 
 
-# Re-export for use by other modules
 @dataclass
 class WorkflowPhase:
     name: str
     description: str
-    capabilities: List[str]
+    capabilities: List[str]  # capability names
     parallel: bool
     timeout_seconds: int
     retry_count: int
-    on_failure: str
+    on_failure: str  # "continue", "abort", "skip"
 
 
 @dataclass
 class Workflow:
     name: str
     description: str
-    stages: List[str]
+    stages: List[str]  # SDLC stage names
     phases: List[WorkflowPhase]
     estimated_duration: str
     estimated_cost: str
@@ -37,148 +27,12 @@ class Workflow:
     adaptation_rules: Dict[str, str]
 
 
-class DependencyEdge:
-    """Represents a dependency between two phases."""
-
-    def __init__(self, from_phase: str, to_phase: str, condition: Optional[str] = None):
-        self.from_phase = from_phase
-        self.to_phase = to_phase
-        self.condition = condition  # Optional condition for conditional dependencies
-
-    def __repr__(self):
-        return "%s -> %s" % (self.from_phase, self.to_phase)
-
-
-class WorkflowDAG:
-    """Directed Acyclic Graph for workflow phase dependencies."""
-
-    def __init__(self):
-        self.adjacency: Dict[str, List[str]] = defaultdict(list)
-        self.in_degree: Dict[str, int] = defaultdict(int)
-        self.nodes: Set[str] = set()
-        self.edges: List[DependencyEdge] = []
-
-    def add_node(self, name: str):
-        self.nodes.add(name)
-        if name not in self.in_degree:
-            self.in_degree[name] = 0
-
-    def add_edge(self, from_phase: str, to_phase: str, condition: Optional[str] = None):
-        self.adjacency[from_phase].append(to_phase)
-        self.in_degree[to_phase] += 1
-        self.nodes.add(from_phase)
-        self.nodes.add(to_phase)
-        self.edges.append(DependencyEdge(from_phase, to_phase, condition))
-
-    def has_cycle(self) -> bool:
-        visited = set()
-        rec_stack = set()
-
-        def dfs(node):
-            visited.add(node)
-            rec_stack.add(node)
-            for neighbor in self.adjacency.get(node, []):
-                if neighbor not in visited:
-                    if dfs(neighbor):
-                        return True
-                elif neighbor in rec_stack:
-                    return True
-            rec_stack.discard(node)
-            return False
-
-        for node in self.nodes:
-            if node not in visited:
-                if dfs(node):
-                    return True
-        return False
-
-    def topological_sort(self) -> List[str]:
-        in_deg = dict(self.in_degree)
-        queue = [n for n in self.nodes if in_deg.get(n, 0) == 0]
-        result = []
-
-        while queue:
-            queue.sort()
-            node = queue.pop(0)
-            result.append(node)
-            for neighbor in self.adjacency.get(node, []):
-                in_deg[neighbor] -= 1
-                if in_deg[neighbor] == 0:
-                    queue.append(neighbor)
-
-        if len(result) != len(self.nodes):
-            raise ValueError("Cycle detected in workflow DAG")
-        return result
-
-    def get_parallel_groups(self) -> List[List[str]]:
-        in_deg = dict(self.in_degree)
-        groups = []
-        remaining = set(self.nodes)
-
-        while remaining:
-            ready = [n for n in remaining if in_deg.get(n, 0) == 0]
-            if not ready:
-                raise ValueError("Cycle detected - cannot resolve parallel groups")
-            groups.append(sorted(ready))
-            for node in ready:
-                remaining.discard(node)
-                for neighbor in self.adjacency.get(node, []):
-                    in_deg[neighbor] -= 1
-
-        return groups
-
-    def get_dependencies(self, phase_name: str) -> List[str]:
-        deps = []
-        for edge in self.edges:
-            if edge.to_phase == phase_name:
-                deps.append(edge.from_phase)
-        return deps
-
-    def get_dependents(self, phase_name: str) -> List[str]:
-        return list(self.adjacency.get(phase_name, []))
-
-
-@dataclass
-class DynamicPhaseConfig:
-    """Configuration for dynamically generated phases."""
-
-    name: str
-    description: str
-    capabilities: List[str]
-    dependencies: List[str]
-    parallel: bool = False
-    timeout_seconds: int = 300
-    retry_count: int = 2
-    on_failure: str = "continue"
-    condition: Optional[str] = None
-    resource_estimate: Dict[str, float] = field(default_factory=dict)
-    rollback_strategy: str = "checkpoint"
-
-
-@dataclass
-class GeneratedWorkflow:
-    """A dynamically generated workflow with DAG structure."""
-
-    name: str
-    description: str
-    phases: List[WorkflowPhase]
-    dag: WorkflowDAG
-    validation_result: Optional[ValidationResult] = None
-    estimated_duration_seconds: float = 0.0
-    critical_path: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
 class WorkflowComposer:
     """Composes workflows from capabilities based on task classification."""
 
     def __init__(self, capability_registry):
         self.registry = capability_registry
         self.workflow_templates = self._build_templates()
-        self.validator = WorkflowValidator(capability_registry)
-        self.metrics = WorkflowMetricsCollector()
-        self.rollback_manager = RollbackManager()
-        self.generated_workflows: Dict[str, GeneratedWorkflow] = {}
 
     def _build_templates(self) -> Dict[str, Workflow]:
         """Build workflow templates for each SDLC stage combination."""
@@ -644,6 +498,7 @@ class WorkflowComposer:
         complexity = classification_result.complexity.value
         domain = classification_result.domain.value
 
+        # Select base workflow template
         workflow_map = {
             "requirements_gathering": "requirements_gathering",
             "architecture_design": "architecture_design",
@@ -656,434 +511,29 @@ class WorkflowComposer:
         base_key = workflow_map.get(task_type, "implementation")
         base_workflow = self.workflow_templates[base_key]
 
+        # If task spans multiple stages, use full lifecycle
         if len(classification_result.sdlc_stages) > 2:
             base_workflow = self.workflow_templates["full_lifecycle"]
 
+        # Adapt workflow based on complexity
         adapted = self._adapt_for_complexity(base_workflow, complexity)
+
+        # Adapt workflow based on domain
         adapted = self._adapt_for_domain(adapted, domain)
+
+        # Adapt workflow based on available capabilities
         adapted = self._adapt_for_availability(adapted)
 
         return adapted
-
-    def compose_dynamic(
-        self, classification_result, task_description: str = ""
-    ) -> GeneratedWorkflow:
-        """Dynamically generate a workflow with DAG-based execution."""
-        task_type = classification_result.task_type
-        complexity = classification_result.complexity.value
-        domain = classification_result.domain.value
-
-        phase_configs = self._generate_phase_configs(
-            task_type, complexity, domain, task_description
-        )
-        dag = self._build_dag_from_configs(phase_configs)
-        phases = self._configs_to_phases(phase_configs)
-
-        if dag.has_cycle():
-            dag = self._resolve_cycles(dag)
-
-        workflow_name = (
-            "Dynamic: %s" % classification_result.task_type.replace("_", " ").title()
-        )
-        generated = GeneratedWorkflow(
-            name=workflow_name,
-            description="Dynamically generated workflow for %s task" % task_type,
-            phases=phases,
-            dag=dag,
-        )
-
-        validation = self.validator.validate(generated)
-        generated.validation_result = validation
-
-        if validation.is_valid:
-            generated.critical_path = self._compute_critical_path(generated)
-            generated.estimated_duration_seconds = self._estimate_duration(generated)
-
-        workflow_id = hashlib.md5(workflow_name.encode()).hexdigest()[:8]
-        self.generated_workflows[workflow_id] = generated
-
-        self.metrics.record_workflow_created(generated)
-
-        return generated
-
-    def _generate_phase_configs(
-        self, task_type: str, complexity: str, domain: str, task_description: str
-    ) -> List[DynamicPhaseConfig]:
-        """Generate phase configurations dynamically based on task analysis."""
-        configs = []
-
-        base_phases = {
-            "requirements_gathering": [
-                DynamicPhaseConfig(
-                    "Discovery",
-                    "Discover context and existing state",
-                    ["FileRead", "Grep", "Glob", "Explore-agent"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Elicitation",
-                    "Gather and document requirements",
-                    ["AskUserQuestion", "FileWrite", "TodoWrite"],
-                    ["Discovery"],
-                    parallel=False,
-                    timeout_seconds=600,
-                    on_failure="abort",
-                ),
-                DynamicPhaseConfig(
-                    "Analysis",
-                    "Analyze feasibility and constraints",
-                    ["WebSearch", "WebFetch", "Plan-agent"],
-                    ["Discovery"],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-            ],
-            "architecture_design": [
-                DynamicPhaseConfig(
-                    "Context Analysis",
-                    "Analyze existing architecture",
-                    ["FileRead", "Grep", "Glob", "Explore-agent"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Pattern Research",
-                    "Research architectural patterns",
-                    ["WebSearch", "WebFetch", "Skill"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Design",
-                    "Create architecture design",
-                    ["Plan-agent", "FileWrite"],
-                    ["Context Analysis", "Pattern Research"],
-                    parallel=False,
-                    timeout_seconds=600,
-                    on_failure="abort",
-                ),
-                DynamicPhaseConfig(
-                    "Documentation",
-                    "Document architecture decisions",
-                    ["FileWrite", "Bash"],
-                    ["Design"],
-                    parallel=False,
-                    timeout_seconds=300,
-                ),
-            ],
-            "implementation": [
-                DynamicPhaseConfig(
-                    "Setup",
-                    "Create project structure",
-                    ["Bash", "FileWrite", "FileRead", "TodoWrite"],
-                    [],
-                    parallel=False,
-                    timeout_seconds=300,
-                    on_failure="abort",
-                ),
-                DynamicPhaseConfig(
-                    "Core Development",
-                    "Implement core functionality",
-                    ["Agent", "FileEdit", "FileWrite", "FileRead", "Bash"],
-                    ["Setup"],
-                    parallel=True,
-                    timeout_seconds=1800,
-                ),
-                DynamicPhaseConfig(
-                    "Integration",
-                    "Integrate components",
-                    ["Agent", "FileEdit", "Bash"],
-                    ["Core Development"],
-                    parallel=False,
-                    timeout_seconds=600,
-                ),
-                DynamicPhaseConfig(
-                    "Quality Gate",
-                    "Run linters and type checks",
-                    ["Bash", "LSP"],
-                    ["Core Development"],
-                    parallel=True,
-                    timeout_seconds=600,
-                ),
-            ],
-            "testing_qa": [
-                DynamicPhaseConfig(
-                    "Test Analysis",
-                    "Analyze test coverage gaps",
-                    ["Bash", "Explore-agent", "FileRead"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Test Generation",
-                    "Generate test cases",
-                    ["Agent", "FileWrite", "FileRead"],
-                    ["Test Analysis"],
-                    parallel=True,
-                    timeout_seconds=600,
-                ),
-                DynamicPhaseConfig(
-                    "Test Execution",
-                    "Run tests and analyze results",
-                    ["Bash", "Agent", "TodoWrite"],
-                    ["Test Generation"],
-                    parallel=False,
-                    timeout_seconds=900,
-                ),
-                DynamicPhaseConfig(
-                    "Fix Failures",
-                    "Fix failing tests",
-                    ["Agent", "FileEdit", "Bash"],
-                    ["Test Execution"],
-                    parallel=False,
-                    timeout_seconds=600,
-                    condition="has_failures",
-                ),
-            ],
-            "deployment_devops": [
-                DynamicPhaseConfig(
-                    "Infrastructure Check",
-                    "Verify infrastructure readiness",
-                    ["Bash", "FileRead", "WebSearch"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Build",
-                    "Build artifacts",
-                    ["Bash", "FileRead"],
-                    ["Infrastructure Check"],
-                    parallel=False,
-                    timeout_seconds=600,
-                    on_failure="abort",
-                ),
-                DynamicPhaseConfig(
-                    "Deploy",
-                    "Deploy to target environment",
-                    ["Bash", "Agent", "TodoWrite"],
-                    ["Build"],
-                    parallel=False,
-                    timeout_seconds=900,
-                    on_failure="abort",
-                ),
-                DynamicPhaseConfig(
-                    "Verification",
-                    "Verify deployment health",
-                    ["Bash", "WebFetch"],
-                    ["Deploy"],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-            ],
-            "maintenance_monitoring": [
-                DynamicPhaseConfig(
-                    "Diagnosis",
-                    "Identify root cause",
-                    ["Bash", "Grep", "FileRead", "Explore-agent"],
-                    [],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-                DynamicPhaseConfig(
-                    "Fix Development",
-                    "Develop and test fix",
-                    ["Agent", "FileEdit", "Bash"],
-                    ["Diagnosis"],
-                    parallel=False,
-                    timeout_seconds=600,
-                ),
-                DynamicPhaseConfig(
-                    "Regression Prevention",
-                    "Add tests and monitoring",
-                    ["Agent", "FileWrite", "Bash"],
-                    ["Fix Development"],
-                    parallel=True,
-                    timeout_seconds=300,
-                ),
-            ],
-        }
-
-        configs = list(base_phases.get(task_type, base_phases["implementation"]))
-
-        if complexity == "complex":
-            planning = DynamicPhaseConfig(
-                "Planning",
-                "Create detailed implementation plan",
-                ["Plan-agent", "TodoWrite"],
-                [],
-                parallel=False,
-                timeout_seconds=300,
-                on_failure="abort",
-            )
-            configs.insert(0, planning)
-            for cfg in configs:
-                if cfg.name != "Planning":
-                    cfg.dependencies.append("Planning")
-            for cfg in configs:
-                cfg.timeout_seconds = int(cfg.timeout_seconds * 1.5)
-                cfg.retry_count = min(cfg.retry_count + 1, 5)
-
-        elif complexity == "simple":
-            if len(configs) > 2:
-                configs = [configs[0], configs[-1]]
-                configs[0].dependencies = []
-                configs[1].dependencies = [configs[0].name]
-
-        domain_enhancements = {
-            "data_ml": ["NotebookEdit"],
-            "devops": ["ScheduleCron", "RemoteTrigger"],
-            "security": ["Grep", "Bash"],
-        }
-        extra_caps = domain_enhancements.get(domain, [])
-        if extra_caps and configs:
-            configs[-1].capabilities.extend(extra_caps)
-
-        return configs
-
-    def _build_dag_from_configs(self, configs: List[DynamicPhaseConfig]) -> WorkflowDAG:
-        """Build a DAG from phase configurations."""
-        dag = WorkflowDAG()
-        for cfg in configs:
-            dag.add_node(cfg.name)
-        for cfg in configs:
-            for dep in cfg.dependencies:
-                dag.add_edge(dep, cfg.name, cfg.condition)
-        return dag
-
-    def _configs_to_phases(
-        self, configs: List[DynamicPhaseConfig]
-    ) -> List[WorkflowPhase]:
-        """Convert DynamicPhaseConfig list to WorkflowPhase list."""
-        phases = []
-        for cfg in configs:
-            phases.append(
-                WorkflowPhase(
-                    name=cfg.name,
-                    description=cfg.description,
-                    capabilities=cfg.capabilities,
-                    parallel=cfg.parallel,
-                    timeout_seconds=cfg.timeout_seconds,
-                    retry_count=cfg.retry_count,
-                    on_failure=cfg.on_failure,
-                )
-            )
-        return phases
-
-    def _resolve_cycles(self, dag: WorkflowDAG) -> WorkflowDAG:
-        """Resolve cycles in DAG by removing back edges."""
-        visited = set()
-        rec_stack = set()
-        edges_to_remove = []
-
-        def dfs(node):
-            visited.add(node)
-            rec_stack.add(node)
-            for neighbor in dag.adjacency.get(node, []):
-                if neighbor not in visited:
-                    dfs(neighbor)
-                elif neighbor in rec_stack:
-                    edges_to_remove.append((node, neighbor))
-            rec_stack.discard(node)
-
-        for node in dag.nodes:
-            if node not in visited:
-                dfs(node)
-
-        new_dag = WorkflowDAG()
-        for node in dag.nodes:
-            new_dag.add_node(node)
-        for edge in dag.edges:
-            if (edge.from_phase, edge.to_phase) not in edges_to_remove:
-                new_dag.add_edge(edge.from_phase, edge.to_phase, edge.condition)
-
-        return new_dag
-
-    def _compute_critical_path(self, workflow: GeneratedWorkflow) -> List[str]:
-        """Compute the critical path through the workflow DAG."""
-        try:
-            order = workflow.dag.topological_sort()
-        except ValueError:
-            return []
-
-        phase_map = {p.name: p for p in workflow.phases}
-        earliest_finish = {}
-        predecessor = {}
-
-        for phase_name in order:
-            phase = phase_map.get(phase_name)
-            if not phase:
-                continue
-            deps = workflow.dag.get_dependencies(phase_name)
-            if not deps:
-                earliest_finish[phase_name] = phase.timeout_seconds
-                predecessor[phase_name] = None
-            else:
-                max_dep = max(deps, key=lambda d: earliest_finish.get(d, 0))
-                earliest_finish[phase_name] = (
-                    earliest_finish.get(max_dep, 0) + phase.timeout_seconds
-                )
-                predecessor[phase_name] = max_dep
-
-        if not earliest_finish:
-            return []
-
-        end = max(earliest_finish, key=lambda k: earliest_finish.get(k, 0))
-        path = []
-        current = end
-        while current is not None:
-            path.append(current)
-            current = predecessor.get(current)
-        path.reverse()
-        return path
-
-    def _estimate_duration(self, workflow: GeneratedWorkflow) -> float:
-        """Estimate total workflow duration considering parallelism."""
-        try:
-            groups = workflow.dag.get_parallel_groups()
-        except ValueError:
-            return sum(p.timeout_seconds for p in workflow.phases)
-
-        phase_map = {p.name: p for p in workflow.phases}
-        total = 0.0
-        for group in groups:
-            group_max = max(
-                (
-                    phase_map.get(
-                        n, WorkflowPhase("", "", [], False, 0, 0, "")
-                    ).timeout_seconds
-                    for n in group
-                ),
-                default=0,
-            )
-            total += group_max
-        return total
-
-    def validate_workflow(self, workflow) -> ValidationResult:
-        """Validate a workflow before execution."""
-        if isinstance(workflow, GeneratedWorkflow):
-            return workflow.validation_result or self.validator.validate(workflow)
-        return self.validator.validate_from_template(workflow)
-
-    def prepare_rollback(self, workflow, context: Dict) -> str:
-        """Prepare rollback state for a workflow execution."""
-        return self.rollback_manager.save_state(workflow, context)
-
-    def rollback_execution(self, checkpoint_id: str):
-        """Rollback to a previous checkpoint."""
-        return self.rollback_manager.rollback(checkpoint_id)
 
     def _adapt_for_complexity(self, workflow: Workflow, complexity: str) -> Workflow:
         """Adapt workflow based on task complexity."""
         phases = list(workflow.phases)
 
         if complexity == "simple":
+            # Simplify: reduce phases, skip parallel execution
             if len(phases) > 2:
+                # Merge first two phases
                 merged = WorkflowPhase(
                     name="%s + %s" % (phases[0].name, phases[1].name),
                     description="%s. %s"
@@ -1100,8 +550,10 @@ class WorkflowComposer:
                 phases = [merged] + phases[2:]
 
         elif complexity == "complex":
+            # Enhance: add planning phase, increase parallelism
             if "Plan-agent" not in phases[0].capabilities:
                 phases[0].capabilities.append("Plan-agent")
+            # Increase timeout for complex tasks
             for phase in phases:
                 phase.timeout_seconds = int(phase.timeout_seconds * 1.5)
                 phase.retry_count = min(phase.retry_count + 1, 5)
@@ -1130,6 +582,8 @@ class WorkflowComposer:
         }
 
         extra_caps = domain_capabilities.get(domain, [])
+
+        # Add domain-specific capabilities to optional
         optional = list(workflow.optional_capabilities)
         for cap in extra_caps:
             if cap not in optional and cap not in workflow.required_capabilities:
@@ -1151,9 +605,11 @@ class WorkflowComposer:
         """Adapt workflow based on what capabilities are actually available."""
         available_names = set(c.name for c in self.registry.get_available())
 
+        # Filter out unavailable required capabilities
         required = [c for c in workflow.required_capabilities if c in available_names]
         optional = [c for c in workflow.optional_capabilities if c in available_names]
 
+        # Filter phases
         phases = []
         for phase in workflow.phases:
             available_caps = [c for c in phase.capabilities if c in available_names]
@@ -1182,11 +638,8 @@ class WorkflowComposer:
             adaptation_rules=workflow.adaptation_rules,
         )
 
-    def get_workflow_plan(self, workflow) -> str:
+    def get_workflow_plan(self, workflow: Workflow) -> str:
         """Generate a human-readable workflow plan."""
-        if isinstance(workflow, GeneratedWorkflow):
-            return self._get_generated_plan(workflow)
-
         lines = [
             "Workflow: %s" % workflow.name,
             "=" * 50,
@@ -1217,54 +670,3 @@ class WorkflowComposer:
         )
 
         return "\n".join(lines)
-
-    def _get_generated_plan(self, workflow: GeneratedWorkflow) -> str:
-        """Generate plan for a dynamically generated workflow."""
-        lines = [
-            "Workflow: %s [DYNAMIC]" % workflow.name,
-            "=" * 50,
-            "Description: %s" % workflow.description,
-            "DAG nodes: %d" % len(workflow.dag.nodes),
-            "DAG edges: %d" % len(workflow.dag.edges),
-            "Critical path: %s" % " -> ".join(workflow.critical_path),
-            "Estimated duration: %.0fs" % workflow.estimated_duration_seconds,
-            "",
-            "Validation: %s"
-            % (
-                "PASS"
-                if workflow.validation_result and workflow.validation_result.is_valid
-                else "FAIL"
-            ),
-        ]
-
-        if workflow.validation_result and not workflow.validation_result.is_valid:
-            for issue in workflow.validation_result.issues:
-                lines.append("  - %s" % issue)
-
-        parallel_groups = workflow.dag.get_parallel_groups()
-        lines.append("")
-        lines.append("Execution groups (parallel within groups):")
-        for i, group in enumerate(parallel_groups, 1):
-            lines.append("  Group %d: %s" % (i, ", ".join(group)))
-
-        lines.append("")
-        lines.append("Phases:")
-        for i, phase in enumerate(workflow.phases, 1):
-            deps = workflow.dag.get_dependencies(phase.name)
-            lines.append("")
-            lines.append("  Phase %d: %s" % (i, phase.name))
-            lines.append("  Description: %s" % phase.description)
-            lines.append("  Dependencies: %s" % (", ".join(deps) if deps else "None"))
-            lines.append("  Capabilities: %s" % ", ".join(phase.capabilities))
-            lines.append("  Parallel: %s" % phase.parallel)
-            lines.append("  Timeout: %ds" % phase.timeout_seconds)
-
-        return "\n".join(lines)
-
-    def get_metrics_report(self) -> str:
-        """Get workflow metrics report."""
-        return self.metrics.generate_report()
-
-    def get_execution_analytics(self) -> Dict:
-        """Get execution analytics from metrics."""
-        return self.metrics.get_analytics()
