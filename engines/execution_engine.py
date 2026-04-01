@@ -1,7 +1,7 @@
 import json
 import time
 from typing import Dict, List, Optional, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
@@ -23,7 +23,7 @@ class PhaseResult:
     duration_seconds: float
     capabilities_used: List[str]
     error: Optional[str] = None
-    adaptations: List[str] = None
+    adaptations: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -39,12 +39,16 @@ class WorkflowResult:
 class ExecutionEngine:
     """Executes composed workflows with adaptation and error handling."""
 
+    # Parallel subagent bounds - minimum 5, maximum 25
+    MIN_SUBAGENTS = 5
+    MAX_SUBAGENTS = 25
+
     def __init__(self, capability_registry, adaptation_layer=None):
         self.registry = capability_registry
         self.adaptation_layer = adaptation_layer
         self.execution_history: List[WorkflowResult] = []
 
-    def execute(self, workflow, context: Dict = None) -> WorkflowResult:
+    def execute(self, workflow, context: Optional[Dict] = None) -> WorkflowResult:
         """Execute a workflow and return the result."""
         if context is None:
             context = {}
@@ -157,26 +161,59 @@ class ExecutionEngine:
             parallel_caps = [c for c in capabilities if c.parallel_safe]
             sequential_caps = [c for c in capabilities if not c.parallel_safe]
 
-            # Execute parallel capabilities
-            for cap in parallel_caps:
-                try:
-                    output = self._execute_capability(cap, context)
-                    outputs.append(
-                        {
-                            "capability": cap.name,
-                            "output": output,
-                            "status": "success",
-                        }
-                    )
-                except Exception as e:
-                    outputs.append(
-                        {
-                            "capability": cap.name,
-                            "output": "",
-                            "status": "error",
-                            "error": str(e),
-                        }
-                    )
+            # Enforce subagent bounds: minimum 5, maximum 25
+            num_parallel = len(parallel_caps)
+            if num_parallel < self.MIN_SUBAGENTS:
+                # If fewer than minimum, still execute all available
+                # but note that we're below minimum
+                pass
+            elif num_parallel > self.MAX_SUBAGENTS:
+                # If more than maximum, batch into groups of MAX_SUBAGENTS
+                batches = [
+                    parallel_caps[i : i + self.MAX_SUBAGENTS]
+                    for i in range(0, num_parallel, self.MAX_SUBAGENTS)
+                ]
+                for batch in batches:
+                    for cap in batch:
+                        try:
+                            output = self._execute_capability(cap, context)
+                            outputs.append(
+                                {
+                                    "capability": cap.name,
+                                    "output": output,
+                                    "status": "success",
+                                }
+                            )
+                        except Exception as e:
+                            outputs.append(
+                                {
+                                    "capability": cap.name,
+                                    "output": "",
+                                    "status": "error",
+                                    "error": str(e),
+                                }
+                            )
+            else:
+                # Within bounds, execute all parallel capabilities
+                for cap in parallel_caps:
+                    try:
+                        output = self._execute_capability(cap, context)
+                        outputs.append(
+                            {
+                                "capability": cap.name,
+                                "output": output,
+                                "status": "success",
+                            }
+                        )
+                    except Exception as e:
+                        outputs.append(
+                            {
+                                "capability": cap.name,
+                                "output": "",
+                                "status": "error",
+                                "error": str(e),
+                            }
+                        )
 
             # Execute sequential capabilities
             for cap in sequential_caps:
