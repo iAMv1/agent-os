@@ -7,7 +7,7 @@
 AgentOS is a universal AI agent operating system that combines:
 1. **Ralph Loop** — Iterative self-improvement
 2. **Superpowers** — Quality enforcement
-3. **Adaptive Workflow** — Dynamic task handling
+3. **Workflow Engine** — Dynamic task handling
 
 See `README.md` for full documentation.
 
@@ -22,7 +22,7 @@ At session start, always load:
 - **File changes**: Track what's been modified since last interaction
 - **Project structure**: Use Glob and Grep (not Bash) for file discovery
 - **Session memory**: Read `.agent-os/memory/session-memory.md` at session start
-- **Session state**: Read `.agent-os/session/current-state.md` for ongoing context
+- **Session state**: Read `.agent-os/memory/current-state.md` for ongoing context
 
 ### 2. Aggressive Prompt Cache Reuse
 

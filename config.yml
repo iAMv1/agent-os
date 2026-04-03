@@ -1,0 +1,49 @@
+# Agent OS Configuration
+# See docs/CONCEPTS.md for profile documentation
+
+default_profile: default
+
+profiles:
+  default:
+    description: "Default profile for general development"
+    inherits: []
+    standards:
+      - coding-standards
+      - git-workflow
+      - testing-standards
+  
+  python:
+    description: "Python development profile"
+    inherits:
+      - default
+    standards:
+      - python-standards
+      - pytest-workflow
+      - type-hinting
+  
+  javascript:
+    description: "JavaScript/TypeScript development profile"
+    inherits:
+      - default
+    standards:
+      - typescript-standards
+      - jest-workflow
+      - eslint-rules
+  
+  web:
+    description: "Web development profile"
+    inherits:
+      - javascript
+    standards:
+      - react-best-practices
+      - component-patterns
+      - accessibility
+  
+  api:
+    description: "API development profile"
+    inherits:
+      - default
+    standards:
+      - rest-conventions
+      - api-documentation
+      - authentication-patterns

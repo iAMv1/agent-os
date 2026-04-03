@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Adaptive Workflow Engine - Main Orchestrator
+Workflow Engine - Main Orchestrator
 
 Analyzes any software development task and dynamically composes
 the optimal workflow using all available capabilities from the
@@ -21,22 +21,18 @@ from datetime import datetime
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from classifier.task_classifier import TaskClassifier
-from registry.capability_registry import CapabilityRegistry
-from engine.workflow_composer import WorkflowComposer
-from engine.execution_engine import ExecutionEngine
-from engine.adaptation_layer import AdaptationLayer
+from task_classifier import TaskClassifier
+from capability_registry import CapabilityRegistry
+from workflow_composer import WorkflowComposer
+from execution_engine import ExecutionEngine
+from adaptation_layer import AdaptationLayer
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Adaptive Workflow Engine")
+    parser = argparse.ArgumentParser(description="Workflow Engine")
     parser.add_argument("task", help="Task description")
-    parser.add_argument(
-        "--mode", choices=["fast", "balanced", "thorough"], default="balanced"
-    )
-    parser.add_argument(
-        "--depth", choices=["shallow", "standard", "deep"], default="standard"
-    )
+    parser.add_argument("--mode", choices=["fast", "balanced", "thorough"], default="balanced")
+    parser.add_argument("--depth", choices=["shallow", "standard", "deep"], default="standard")
     parser.add_argument("--output", choices=["json", "text"], default="text")
     args = parser.parse_args()
 
@@ -57,9 +53,7 @@ def main():
     engine = ExecutionEngine(registry, adaptation_layer)
 
     print("  - Task classifier: ready")
-    print(
-        "  - Capability registry: %d capabilities loaded" % len(registry.capabilities)
-    )
+    print("  - Capability registry: %d capabilities loaded" % len(registry.capabilities))
     print("  - Workflow composer: ready")
     print("  - Execution engine: ready")
     print("  - Adaptation layer: ready")
@@ -70,9 +64,7 @@ def main():
     classification_dict = classifier.to_dict(classification)
 
     print("  - Task type: %s" % classification.task_type)
-    print(
-        "  - SDLC stages: %s" % ", ".join([s.value for s in classification.sdlc_stages])
-    )
+    print("  - SDLC stages: %s" % ", ".join([s.value for s in classification.sdlc_stages]))
     print("  - Complexity: %s" % classification.complexity.value)
     print("  - Domain: %s" % classification.domain.value)
     print("  - Estimated files: %d" % classification.estimated_files)
@@ -107,13 +99,7 @@ def main():
     print(
         "  - Phases completed: %d/%d"
         % (
-            len(
-                [
-                    p
-                    for p in result.phase_results
-                    if p.status.value in ["completed", "adapted"]
-                ]
-            ),
+            len([p for p in result.phase_results if p.status.value in ["completed", "adapted"]]),
             len(result.phase_results),
         )
     )
@@ -179,17 +165,13 @@ def main():
             print("\n--- Phase %d: %s ---" % (i, phase.name))
             print("Description: %s" % phase.description)
             print(
-                "Parallel: %s | Timeout: %ds | Retries: %d"
-                % (phase.parallel, phase.timeout_seconds, phase.retry_count)
+                "Parallel: %s | Timeout: %ds | Retries: %d" % (phase.parallel, phase.timeout_seconds, phase.retry_count)
             )
             print("\nCapabilities to use:")
             for cap_name in phase.capabilities:
                 cap = registry.get_by_name(cap_name)
                 if cap:
-                    print(
-                        "  - %s (%s): %s"
-                        % (cap.name, cap.cap_type.value, cap.description)
-                    )
+                    print("  - %s (%s): %s" % (cap.name, cap.cap_type.value, cap.description))
 
         print("\n" + "=" * 70)
         print("EXECUTION RESULT")

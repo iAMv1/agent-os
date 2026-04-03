@@ -55,49 +55,9 @@ python engines/workflow-engine.py --help
 
 ---
 
-## Phase 2: Prompt Enhancer (Automatic)
+## Phase 1: Task Classification
 
-### Step 2.1: Clarity Assessment
-The agent evaluates the prompt against an 8-point checklist:
-
-| Criteria | Score | Status |
-|----------|-------|--------|
-| Goal is specific and unambiguous | 2/2 | ✅ Clear |
-| Scope is defined (files, components) | 2/2 | ✅ Clear |
-| Constraints stated (quality, time) | 0/1 | ⚠️ Missing |
-| Context sufficient (background) | 1/2 | ⚠️ Partial |
-| Success criteria clear | 1/1 | ✅ Clear |
-| **Total** | **6/8** | **Good** |
-
-### Step 2.2: Decision
-- Score 6/8 → **Self-enhance** (not unclear enough to ask questions)
-- Agent fills gaps with reasonable assumptions:
-  - Quality: Standard production quality
-  - Time: Normal development timeline
-  - Context: Standard FastAPI + PostgreSQL patterns
-
-### Step 2.3: Enhanced Specification
-```
-Enhanced Task Specification:
-
-Original: "Build a REST API for a todo app with user authentication using FastAPI and PostgreSQL"
-
-Enhanced:
-- Goal: Build REST API with CRUD operations + JWT auth
-- Scope: FastAPI app, PostgreSQL models, auth endpoints
-- Constraints: Production quality, standard patterns
-- Context: FastAPI + PostgreSQL + JWT
-- Success Criteria: Working API with auth, tests pass
-- Assumptions: Standard project structure, JWT auth, CRUD for todos
-
-Proceeding with execution.
-```
-
----
-
-## Phase 3: Task Classification
-
-### Step 3.1: Classify Task Type
+### Step 1.1: Classify Task Type
 The agent analyzes the task and classifies it:
 
 | Dimension | Classification | Confidence |
@@ -127,9 +87,9 @@ Based on classification, the agent selects relevant skills:
 
 ---
 
-## Phase 4: Workflow Composition
+## Phase 2: Workflow Composition
 
-### Step 4.1: Select Workflow Template
+### Step 2.1: Select Workflow Template
 Based on task type (implementation), the agent selects the **Implementation Workflow**:
 
 ```
@@ -139,18 +99,18 @@ Implementation Workflow
 └── Phase 3: Code Quality (parallel, 10 min, 2 retries)
 ```
 
-### Step 4.2: Adapt for Complexity
+### Step 2.2: Adapt for Complexity
 Since complexity is "medium", the workflow stays as-is (no simplification or enhancement needed).
 
-### Step 4.3: Adapt for Domain
+### Step 2.3: Adapt for Domain
 Since domain is "backend, api", the agent adds:
 - `deep-research` for API patterns
 - `quality-assurance` for API testing
 
-### Step 4.4: Adapt for Availability
+### Step 2.4: Adapt for Availability
 The agent checks which capabilities are available and filters out unavailable ones.
 
-### Step 4.5: Final Workflow
+### Step 2.5: Final Workflow
 ```
 Phase 1: Setup
   - Bash (sequential)
@@ -175,9 +135,9 @@ Phase 3: Code Quality
 
 ---
 
-## Phase 5: Execution (Ralph Loop)
+## Phase 3: Execution (Ralph Loop)
 
-### Step 5.1: Phase 1 — Setup
+### Step 3.1: Phase 1 — Setup
 
 **Actions:**
 1. Create project structure (`Bash`: `mkdir -p app/models app/routes app/schemas`)
@@ -198,7 +158,7 @@ Phase 3: Code Quality
 
 ---
 
-### Step 5.2: Phase 2 — Core Development
+### Step 3.2: Phase 2 — Core Development
 
 **Parallel Subagents (5-25 bound enforced):**
 
@@ -235,7 +195,7 @@ The agent spawns **5 parallel subagents** (within the 5-25 bounds):
 
 ---
 
-### Step 5.3: Phase 3 — Code Quality
+### Step 3.3: Phase 3 — Code Quality
 
 **Parallel Subagents (3 agents):**
 
@@ -262,9 +222,9 @@ The agent spawns **5 parallel subagents** (within the 5-25 bounds):
 
 ---
 
-## Phase 6: Verification (Superpowers)
+## Phase 4: Verification (Superpowers)
 
-### Step 6.1: Iron Laws Check
+### Step 4.1: Iron Laws Check
 The agent verifies against iron laws:
 
 | Iron Law | Status |
@@ -274,7 +234,7 @@ The agent verifies against iron laws:
 | No conclusions without showing research process | ✅ Passed |
 | No decisions without evaluating 3 alternatives | ✅ Passed |
 
-### Step 6.2: Hard Gates Check
+### Step 4.2: Hard Gates Check
 The agent verifies all hard gates passed:
 
 | Hard Gate | Status |
@@ -284,7 +244,7 @@ The agent verifies all hard gates passed:
 | Type checking clean | ✅ Passed |
 | Documentation complete | ✅ Passed |
 
-### Step 6.3: Anti-Slop Check
+### Step 4.3: Anti-Slop Check
 The agent checks for anti-slop patterns:
 
 | Pattern | Status |
@@ -296,9 +256,9 @@ The agent checks for anti-slop patterns:
 
 ---
 
-## Phase 7: Delivery
+## Phase 5: Delivery
 
-### Step 7.1: Generate Output
+### Step 5.1: Generate Output
 The agent produces:
 
 ```
@@ -341,8 +301,8 @@ The agent produces:
 - Add deployment configuration
 ```
 
-### Step 7.2: Update Session Memory
-The agent updates `.claude/memory/session-memory.md`:
+### Step 5.2: Update Session Memory
+The agent updates `.agent-os/memory/session-memory.md`:
 
 ```markdown
 ## Session Title
@@ -368,7 +328,7 @@ Task completed successfully
 
 ---
 
-## Phase 8: Context Management (Throughout)
+## Phase 6: Context Management (Throughout)
 
 ### During Execution
 The agent manages context continuously:
@@ -417,13 +377,6 @@ User Prompt
     │
     ▼
 ┌─────────────────────┐
-│  Prompt Enhancer    │  Score 0-2: Ask questions
-│  (Auto)             │  Score 3-6: Self-enhance
-│                     │  Score 7-8: Execute directly
-└─────────────────────┘
-    │
-    ▼
-┌─────────────────────┐
 │  Task Classifier    │  Type, complexity, domain
 │                     │  Selects relevant skills
 └─────────────────────┘
@@ -459,10 +412,9 @@ User Prompt
 
 ## Key Insights
 
-1. **Prompt Enhancer** prevents wasted effort on unclear tasks
-2. **Task Classifier** ensures the right skills are selected
-3. **Workflow Composer** adapts to task complexity and domain
-4. **Execution Engine** enforces 5-25 subagent bounds
-5. **Ralph Loop** ensures iterative improvement
-6. **Superpowers** enforces quality standards
-7. **Context Management** prevents context bloat throughout
+1. **Task Classifier** ensures the right skills are selected
+2. **Workflow Composer** adapts to task complexity and domain
+3. **Execution Engine** enforces 5-25 subagent bounds
+4. **Ralph Loop** ensures iterative improvement
+5. **Superpowers** enforces quality standards
+6. **Context Management** prevents context bloat throughout

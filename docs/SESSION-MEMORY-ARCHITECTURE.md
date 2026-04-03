@@ -20,8 +20,6 @@ agent-os/
 │   └── {sessionId}.jsonl
 ├── memory/           ← Session memory (updated on thresholds)
 │   └── session-memory.md
-├── session/          ← Current session state (updated every turn)
-│   └── current-state.md
 └── cache/            ← File hashes (updated on file changes)
     └── file-hashes.json
 ```

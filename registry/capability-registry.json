@@ -1,0 +1,1495 @@
+{
+  "FileRead": {
+    "type": "tool",
+    "description": "Read file contents with range support, binary detection, image handling",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/FileReadTool/FileReadTool.tsx"
+    ],
+    "inputs": "file path, optional line range",
+    "outputs": "file content, metadata",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "FileEdit": {
+    "type": "tool",
+    "description": "Edit files using SEARCH/REPLACE blocks with diff visualization",
+    "stages": [
+      "implementation",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/FileEditTool/FileEditTool.tsx"
+    ],
+    "inputs": "file path, search block, replace block",
+    "outputs": "diff, success status",
+    "dependencies": [
+      "FileRead"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": false
+  },
+  "FileWrite": {
+    "type": "tool",
+    "description": "Write new files or overwrite existing files",
+    "stages": [
+      "implementation",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/FileWriteTool/FileWriteTool.tsx"
+    ],
+    "inputs": "file path, content",
+    "outputs": "success status",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": false
+  },
+  "Bash": {
+    "type": "tool",
+    "description": "Execute shell commands with sandboxing, backgrounding, progress tracking, security analysis",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance",
+      "infrastructure"
+    ],
+    "source_files": [
+      "tools/BashTool/BashTool.tsx",
+      "tools/BashTool/UI.tsx",
+      "tools/BashTool/bashPermissions.tsx"
+    ],
+    "inputs": "command string, timeout, description, background flag",
+    "outputs": "stdout, stderr, exit code, background task ID",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": false
+  },
+  "Grep": {
+    "type": "tool",
+    "description": "Search file contents using ripgrep with regex support",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/GrepTool/GrepTool.tsx"
+    ],
+    "inputs": "pattern, file filters, context lines",
+    "outputs": "matching lines with file paths and line numbers",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Glob": {
+    "type": "tool",
+    "description": "Find files matching glob patterns",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/GlobTool/GlobTool.tsx"
+    ],
+    "inputs": "glob pattern, path",
+    "outputs": "matching file paths",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "WebSearch": {
+    "type": "tool",
+    "description": "Search the web using Exa AI for current information",
+    "stages": [
+      "requirements",
+      "design",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/WebSearchTool/WebSearchTool.tsx"
+    ],
+    "inputs": "search query, num results, live crawl mode",
+    "outputs": "search results with content from top websites",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "WebFetch": {
+    "type": "tool",
+    "description": "Fetch and read webpage content in markdown, text, or HTML",
+    "stages": [
+      "requirements",
+      "design",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/WebFetchTool/WebFetchTool.tsx"
+    ],
+    "inputs": "URL, format (markdown/text/html)",
+    "outputs": "page content in requested format",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TodoWrite": {
+    "type": "tool",
+    "description": "Create and manage todo lists with status tracking",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/TodoWriteTool/TodoWriteTool.ts"
+    ],
+    "inputs": "todo items with status (pending/in_progress/completed/cancelled)",
+    "outputs": "updated todo list",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "AskUserQuestion": {
+    "type": "tool",
+    "description": "Present multiple-choice questions to users for clarification and decision-making",
+    "stages": [
+      "requirements",
+      "design"
+    ],
+    "source_files": [
+      "tools/AskUserQuestionTool/AskUserQuestionTool.tsx"
+    ],
+    "inputs": "array of questions with options, labels, descriptions",
+    "outputs": "user answers mapped to questions",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "Skill": {
+    "type": "tool",
+    "description": "Load and invoke skills (specialized instruction sets) with tool restrictions and model overrides",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/SkillTool/SkillTool.ts"
+    ],
+    "inputs": "skill name",
+    "outputs": "loaded skill with allowed tools, model configuration",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "Agent": {
+    "type": "tool",
+    "description": "Spawn specialized subagents with configurable models, isolation modes, and tool pools",
+    "stages": [
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/AgentTool/AgentTool.tsx",
+      "tools/AgentTool/builtInAgents.ts",
+      "tools/AgentTool/forkSubagent.ts",
+      "tools/AgentTool/runAgent.ts"
+    ],
+    "inputs": "prompt, description, subagent_type, model, background flag, isolation mode",
+    "outputs": "completed result or async launch info",
+    "dependencies": [
+      "LocalAgentTask",
+      "RemoteAgentTask"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "NotebookEdit": {
+    "type": "tool",
+    "description": "Edit Jupyter notebook cells with source and outputs",
+    "stages": [
+      "implementation"
+    ],
+    "source_files": [
+      "tools/NotebookEditTool/NotebookEditTool.tsx"
+    ],
+    "inputs": "notebook path, cell operations",
+    "outputs": "updated notebook",
+    "dependencies": [
+      "FileRead",
+      "FileWrite"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": false
+  },
+  "LSP": {
+    "type": "tool",
+    "description": "Language Server Protocol operations for code intelligence (go-to-def, references, diagnostics, symbols)",
+    "stages": [
+      "implementation",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/LSPTool/LSPTool.ts"
+    ],
+    "inputs": "operation type, file path, position",
+    "outputs": "code intelligence results",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "ENABLE_LSP_TOOL",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "PowerShell": {
+    "type": "tool",
+    "description": "Execute PowerShell commands on Windows",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/PowerShellTool/PowerShellTool.ts"
+    ],
+    "inputs": "PowerShell command",
+    "outputs": "command output",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "isPowerShellToolEnabled()",
+    "cost": "medium",
+    "parallel_safe": false
+  },
+  "EnterPlanMode": {
+    "type": "tool",
+    "description": "Enter structured planning mode with plan file management",
+    "stages": [
+      "requirements",
+      "design"
+    ],
+    "source_files": [
+      "tools/EnterPlanModeTool/EnterPlanModeTool.tsx"
+    ],
+    "inputs": "optional description",
+    "outputs": "mode transition, plan file",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "ExitPlanMode": {
+    "type": "tool",
+    "description": "Exit planning mode and return to implementation",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "tools/ExitPlanModeTool/ExitPlanModeTool.tsx"
+    ],
+    "inputs": "none",
+    "outputs": "mode transition",
+    "dependencies": [
+      "EnterPlanMode"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "EnterWorktree": {
+    "type": "tool",
+    "description": "Create and enter a git worktree for isolated development",
+    "stages": [
+      "implementation"
+    ],
+    "source_files": [
+      "tools/EnterWorktreeTool/EnterWorktreeTool.tsx"
+    ],
+    "inputs": "branch name, optional path",
+    "outputs": "worktree path",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "ExitWorktree": {
+    "type": "tool",
+    "description": "Exit current git worktree",
+    "stages": [
+      "implementation"
+    ],
+    "source_files": [
+      "tools/ExitWorktreeTool/ExitWorktreeTool.tsx"
+    ],
+    "inputs": "none",
+    "outputs": "success status",
+    "dependencies": [
+      "EnterWorktree"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "ScheduleCron": {
+    "type": "tool",
+    "description": "Create, list, update, and run cron-triggered tasks",
+    "stages": [
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/ScheduleCronTool/ScheduleCronTool.ts"
+    ],
+    "inputs": "action (create/list/update/run), cron expression, task config",
+    "outputs": "task status",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "AGENT_TRIGGERS",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "RemoteTrigger": {
+    "type": "tool",
+    "description": "Create and manage remote-triggered agent sessions via CCR",
+    "stages": [
+      "deployment",
+      "infrastructure"
+    ],
+    "source_files": [
+      "tools/RemoteTriggerTool/RemoteTriggerTool.ts"
+    ],
+    "inputs": "trigger config, environment ID",
+    "outputs": "trigger status",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "AGENT_TRIGGERS_REMOTE",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "ToolSearch": {
+    "type": "tool",
+    "description": "Discover deferred tools (MCP + deferred loading tools) on-demand",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/ToolSearchTool/ToolSearchTool.ts"
+    ],
+    "inputs": "search query or tool name",
+    "outputs": "matching tool definitions",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "ENABLE_TOOL_SEARCH",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Config": {
+    "type": "tool",
+    "description": "Read and modify AI Coding Agent configuration",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/ConfigTool/ConfigTool.ts"
+    ],
+    "inputs": "config path, value",
+    "outputs": "config value or updated config",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "USER_TYPE=ant",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Brief": {
+    "type": "tool",
+    "description": "Generate brief summaries of conversation or code changes",
+    "stages": [
+      "requirements",
+      "design",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/BriefTool/BriefTool.ts"
+    ],
+    "inputs": "context to summarize",
+    "outputs": "brief summary",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Sleep": {
+    "type": "tool",
+    "description": "Delay execution for a specified duration",
+    "stages": [
+      "implementation",
+      "testing"
+    ],
+    "source_files": [
+      "tools/SleepTool/SleepTool.ts"
+    ],
+    "inputs": "duration in seconds",
+    "outputs": "none",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "PROACTIVE or KAIROS",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "SyntheticOutput": {
+    "type": "tool",
+    "description": "Generate structured synthetic output for testing and simulation",
+    "stages": [
+      "testing"
+    ],
+    "source_files": [
+      "tools/SyntheticOutputTool/SyntheticOutputTool.ts"
+    ],
+    "inputs": "output specification",
+    "outputs": "synthetic content",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "internal",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskCreate": {
+    "type": "tool",
+    "description": "Create a new background task",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskCreateTool/TaskCreateTool.ts"
+    ],
+    "inputs": "task type, config",
+    "outputs": "task ID",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskGet": {
+    "type": "tool",
+    "description": "Get status and output of a task by ID",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskGetTool/TaskGetTool.ts"
+    ],
+    "inputs": "task ID",
+    "outputs": "task status, output",
+    "dependencies": [
+      "TaskCreate"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskList": {
+    "type": "tool",
+    "description": "List all tasks with filtering",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskListTool/TaskListTool.ts"
+    ],
+    "inputs": "optional filters",
+    "outputs": "list of tasks",
+    "dependencies": [
+      "TaskCreate"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskUpdate": {
+    "type": "tool",
+    "description": "Update task status and metadata",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskUpdateTool/TaskUpdateTool.ts"
+    ],
+    "inputs": "task ID, updates",
+    "outputs": "updated task",
+    "dependencies": [
+      "TaskCreate"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskStop": {
+    "type": "tool",
+    "description": "Stop a running task",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskStopTool/TaskStopTool.ts"
+    ],
+    "inputs": "task ID",
+    "outputs": "stop confirmation",
+    "dependencies": [
+      "TaskCreate"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TaskOutput": {
+    "type": "tool",
+    "description": "Get incremental output from a running task",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tools/TaskOutputTool/TaskOutputTool.ts"
+    ],
+    "inputs": "task ID, offset",
+    "outputs": "new output since offset",
+    "dependencies": [
+      "TaskCreate"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "TeamCreate": {
+    "type": "tool",
+    "description": "Create an agent team (swarm) with multiple members",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "tools/TeamCreateTool/TeamCreateTool.ts"
+    ],
+    "inputs": "team name, member configs",
+    "outputs": "team ID",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "isAgentSwarmsEnabled()",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "TeamDelete": {
+    "type": "tool",
+    "description": "Delete an agent team",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "tools/TeamDeleteTool/TeamDeleteTool.ts"
+    ],
+    "inputs": "team ID",
+    "outputs": "deletion confirmation",
+    "dependencies": [
+      "TeamCreate"
+    ],
+    "always_available": false,
+    "gating": "isAgentSwarmsEnabled()",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "SendMessage": {
+    "type": "tool",
+    "description": "Send messages between running agents/teammates",
+    "stages": [
+      "design",
+      "implementation",
+      "collaboration"
+    ],
+    "source_files": [
+      "tools/SendMessageTool/SendMessageTool.ts"
+    ],
+    "inputs": "target agent name, message content",
+    "outputs": "delivery confirmation",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "KAIROS",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "general-purpose-agent": {
+    "type": "agent",
+    "description": "All-purpose research and multi-step task execution",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/AgentTool/builtInAgents.ts"
+    ],
+    "inputs": "prompt, description",
+    "outputs": "completed result",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "Explore-agent": {
+    "type": "agent",
+    "description": "Read-only file search specialist for codebase exploration",
+    "stages": [
+      "requirements",
+      "design",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/AgentTool/builtInAgents.ts"
+    ],
+    "inputs": "exploration prompt",
+    "outputs": "findings report",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Plan-agent": {
+    "type": "agent",
+    "description": "Software architect for implementation planning",
+    "stages": [
+      "design"
+    ],
+    "source_files": [
+      "tools/AgentTool/builtInAgents.ts"
+    ],
+    "inputs": "planning prompt",
+    "outputs": "implementation plan",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "verification-agent": {
+    "type": "agent",
+    "description": "Adversarial testing specialist with evidence tracking",
+    "stages": [
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/AgentTool/builtInAgents.ts"
+    ],
+    "inputs": "testing prompt",
+    "outputs": "VERDICT: PASS/FAIL/PARTIAL with evidence",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "tengu_hive_evidence",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "agent-code-guide-agent": {
+    "type": "agent",
+    "description": "Documentation Q&A agent for AI Coding Agent usage",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "tools/AgentTool/builtInAgents.ts"
+    ],
+    "inputs": "question about AI Coding Agent",
+    "outputs": "answer from documentation",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "fork-agent": {
+    "type": "agent",
+    "description": "Context-inheriting worker that receives parent's full conversation",
+    "stages": [
+      "implementation"
+    ],
+    "source_files": [
+      "tools/AgentTool/forkSubagent.ts"
+    ],
+    "inputs": "directive",
+    "outputs": "structured result (Scope/Result/Key files/Files changed/Issues)",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "FORK_SUBAGENT",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "MCP-System": {
+    "type": "service",
+    "description": "Model Context Protocol server management, OAuth, elicitation, connections",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/mcp/client.ts",
+      "services/mcp/config.ts",
+      "services/mcp/auth.ts",
+      "services/mcp/oauth.ts",
+      "services/mcp/elicitation.ts"
+    ],
+    "inputs": "MCP server config",
+    "outputs": "MCP tools and resources",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "Compact-System": {
+    "type": "service",
+    "description": "Context compaction: auto-compact, micro-compact, reactive compact, snip",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/compact/autoCompact.ts",
+      "services/compact/microCompact.ts",
+      "services/compact/reactiveCompact.ts"
+    ],
+    "inputs": "context state",
+    "outputs": "compacted context",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "Memory-System": {
+    "type": "service",
+    "description": "Session memory, team memory sync, memory extraction, auto-dream",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/SessionMemory/",
+      "services/teamMemorySync/",
+      "services/extractMemories/",
+      "services/autoDream/"
+    ],
+    "inputs": "context to remember",
+    "outputs": "retrieved memories",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Plugin-System": {
+    "type": "service",
+    "description": "Plugin loading, installation, auto-update, policy enforcement",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/plugins/",
+      "plugins/builtinPlugins.ts",
+      "utils/plugins/"
+    ],
+    "inputs": "plugin source",
+    "outputs": "loaded plugin capabilities",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "Skill-System": {
+    "type": "service",
+    "description": "Skill loading, discovery, conditional activation, shell execution",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "skills/loadSkillsDir.ts",
+      "skills/bundledSkills.ts",
+      "skills/mcpSkillBuilders.ts"
+    ],
+    "inputs": "skill name or path",
+    "outputs": "loaded skill content",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Hook-System": {
+    "type": "service",
+    "description": "PreToolUse, PostToolUse, PermissionRequest, and other lifecycle hooks",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/tools/toolHooks.ts",
+      "schemas/hooks.ts"
+    ],
+    "inputs": "hook event, hook config",
+    "outputs": "hook result (allow/deny/modify)",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "API-Client": {
+    "type": "service",
+    "description": "AI Agent API communication with streaming, retry, caching, anti-distillation",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/api/claude.ts",
+      "services/api/withRetry.ts",
+      "services/api/bootstrap.ts"
+    ],
+    "inputs": "messages, model, params",
+    "outputs": "streamed response",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "Analytics-System": {
+    "type": "service",
+    "description": "GrowthBook feature flags, Datadog, event logging, telemetry",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/analytics/growthbook.ts",
+      "services/analytics/datadog.ts"
+    ],
+    "inputs": "event data",
+    "outputs": "analytics insights",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Voice-System": {
+    "type": "service",
+    "description": "Voice mode with WebSocket streaming, STT, native audio capture",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "services/voice.ts",
+      "services/voiceStreamSTT.ts"
+    ],
+    "inputs": "audio stream",
+    "outputs": "transcribed text",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "VOICE_MODE",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "LSP-Service": {
+    "type": "service",
+    "description": "Language Server Protocol client, manager, diagnostics",
+    "stages": [
+      "implementation",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/lsp/client.ts",
+      "services/lsp/manager.ts",
+      "services/lsp/diagnostics.ts"
+    ],
+    "inputs": "LSP server config",
+    "outputs": "code intelligence",
+    "dependencies": [],
+    "always_available": false,
+    "gating": "ENABLE_LSP_TOOL",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "MagicDocs": {
+    "type": "service",
+    "description": "Auto-maintained documentation that updates in background",
+    "stages": [
+      "implementation",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/MagicDocs/magicDocs.ts"
+    ],
+    "inputs": "files with # MAGIC DOC: header",
+    "outputs": "updated documentation",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "LocalShellTask": {
+    "type": "agent",
+    "description": "Execute shell commands as background tasks",
+    "stages": [
+      "implementation",
+      "testing",
+      "deployment"
+    ],
+    "source_files": [
+      "tasks/LocalShellTask/LocalShellTask.tsx"
+    ],
+    "inputs": "shell command",
+    "outputs": "command output",
+    "dependencies": [
+      "Bash"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "LocalAgentTask": {
+    "type": "agent",
+    "description": "Run agents locally with full tool access",
+    "stages": [
+      "design",
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "tasks/LocalAgentTask/LocalAgentTask.tsx"
+    ],
+    "inputs": "agent config, prompt",
+    "outputs": "agent result",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "RemoteAgentTask": {
+    "type": "agent",
+    "description": "Run agents on remote CCR environments",
+    "stages": [
+      "design",
+      "deployment",
+      "infrastructure"
+    ],
+    "source_files": [
+      "tasks/RemoteAgentTask/RemoteAgentTask.tsx"
+    ],
+    "inputs": "agent config, environment ID",
+    "outputs": "remote agent result",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "USER_TYPE=ant",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "InProcessTeammateTask": {
+    "type": "agent",
+    "description": "Run teammate agents in-process with AsyncLocalStorage isolation",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "tasks/InProcessTeammateTask/InProcessTeammateTask.tsx"
+    ],
+    "inputs": "teammate config, prompt",
+    "outputs": "teammate result",
+    "dependencies": [
+      "Agent",
+      "TeamCreate"
+    ],
+    "always_available": false,
+    "gating": "isAgentSwarmsEnabled()",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "DreamTask": {
+    "type": "agent",
+    "description": "Background dream mode tasks for autonomous exploration",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "tasks/DreamTask/DreamTask.tsx"
+    ],
+    "inputs": "dream config",
+    "outputs": "dream result",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": false,
+    "gating": "KAIROS_DREAM",
+    "cost": "high",
+    "parallel_safe": true
+  },
+  "PreToolUse-Hook": {
+    "type": "hook",
+    "description": "Intercept tool execution before it runs - can modify input, allow/deny, prevent continuation",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/tools/toolHooks.ts"
+    ],
+    "inputs": "tool name, tool input",
+    "outputs": "allow/deny/ask/modify",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "PostToolUse-Hook": {
+    "type": "hook",
+    "description": "Intercept tool execution after completion - can modify output, block continuation",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/tools/toolHooks.ts"
+    ],
+    "inputs": "tool name, tool output",
+    "outputs": "modified output / block",
+    "dependencies": [
+      "PreToolUse-Hook"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "PermissionRequest-Hook": {
+    "type": "hook",
+    "description": "Intercept permission requests before evaluation",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "services/tools/toolHooks.ts"
+    ],
+    "inputs": "tool name, tool input",
+    "outputs": "allow/deny/ask",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "IDE-Integration-Hook": {
+    "type": "hook",
+    "description": "IDE integration for diff viewing, selection sync, logging",
+    "stages": [
+      "implementation",
+      "maintenance"
+    ],
+    "source_files": [
+      "hooks/useIDEIntegration.tsx",
+      "hooks/useIdeConnectionStatus.ts",
+      "hooks/useIdeSelection.ts"
+    ],
+    "inputs": "IDE events",
+    "outputs": "IDE actions",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "Swarm-Permission-Hook": {
+    "type": "hook",
+    "description": "Forward permission requests from swarm workers to leader via mailbox",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "hooks/toolPermission/handlers/swarmWorkerHandler.ts"
+    ],
+    "inputs": "worker permission request",
+    "outputs": "leader decision",
+    "dependencies": [
+      "Agent",
+      "TeamCreate"
+    ],
+    "always_available": false,
+    "gating": "isAgentSwarmsEnabled()",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "plan-command": {
+    "type": "command",
+    "description": "Enter/exit planning mode via /plan command",
+    "stages": [
+      "requirements",
+      "design"
+    ],
+    "source_files": [
+      "commands/plan/plan.tsx"
+    ],
+    "inputs": "optional description",
+    "outputs": "plan mode state",
+    "dependencies": [
+      "EnterPlanMode",
+      "ExitPlanMode"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "agents-command": {
+    "type": "command",
+    "description": "View and manage agent teams via /agents command",
+    "stages": [
+      "design",
+      "implementation"
+    ],
+    "source_files": [
+      "commands/agents/agents.tsx"
+    ],
+    "inputs": "none",
+    "outputs": "agent list",
+    "dependencies": [
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "mcp-command": {
+    "type": "command",
+    "description": "Manage MCP servers via /mcp command",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "deployment"
+    ],
+    "source_files": [
+      "commands/mcp/mcp.tsx"
+    ],
+    "inputs": "mcp action",
+    "outputs": "mcp status",
+    "dependencies": [
+      "MCP-System"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "plugin-command": {
+    "type": "command",
+    "description": "Manage plugins via /plugin command",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "deployment"
+    ],
+    "source_files": [
+      "commands/plugin/ManagePlugins.tsx"
+    ],
+    "inputs": "plugin action",
+    "outputs": "plugin status",
+    "dependencies": [
+      "Plugin-System"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "commit-command": {
+    "type": "command",
+    "description": "Create git commits with AI-generated messages via /commit",
+    "stages": [
+      "implementation",
+      "deployment"
+    ],
+    "source_files": [
+      "commands/commit.ts"
+    ],
+    "inputs": "optional message",
+    "outputs": "commit hash",
+    "dependencies": [
+      "Bash"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": false
+  },
+  "diff-command": {
+    "type": "command",
+    "description": "View git diffs via /diff",
+    "stages": [
+      "implementation",
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "commands/diff/diff.tsx"
+    ],
+    "inputs": "optional file path",
+    "outputs": "diff content",
+    "dependencies": [
+      "Bash"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "review-command": {
+    "type": "command",
+    "description": "Review code changes via /review",
+    "stages": [
+      "testing",
+      "maintenance"
+    ],
+    "source_files": [
+      "commands/review/review.tsx"
+    ],
+    "inputs": "optional PR number",
+    "outputs": "review result",
+    "dependencies": [
+      "Bash",
+      "Agent"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "medium",
+    "parallel_safe": true
+  },
+  "compact-command": {
+    "type": "command",
+    "description": "Trigger context compaction via /compact",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "commands/compact/compact.tsx"
+    ],
+    "inputs": "none",
+    "outputs": "compaction confirmation",
+    "dependencies": [
+      "Compact-System"
+    ],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  },
+  "model-command": {
+    "type": "command",
+    "description": "Switch AI models via /model",
+    "stages": [
+      "requirements",
+      "design",
+      "implementation",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "source_files": [
+      "commands/model/model.tsx"
+    ],
+    "inputs": "model name",
+    "outputs": "model confirmation",
+    "dependencies": [],
+    "always_available": true,
+    "gating": "always",
+    "cost": "low",
+    "parallel_safe": true
+  }
+}

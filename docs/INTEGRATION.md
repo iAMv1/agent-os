@@ -178,10 +178,10 @@ arguments:
 
 Group related skills into packs:
 ```bash
-mkdir -r skills/my-pack/
-cp skills/deep-research skills/my-pack/
-cp skills/knowledge-synthesis skills/my-pack/
-cp skills/decision-framework skills/my-pack/
+mkdir -p skills/my-pack/
+cp -r skills/deep-research skills/my-pack/
+cp -r skills/knowledge-synthesis skills/my-pack/
+cp -r skills/decision-framework skills/my-pack/
 ```
 
 ## Troubleshooting

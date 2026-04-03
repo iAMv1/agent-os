@@ -1,8 +1,8 @@
-# Adaptive Workflow Engine - Complete System Report
+# Workflow Engine - Complete System Report
 
 ## System Overview
 
-The Adaptive Workflow Engine is a Python-based system that analyzes any software development task and dynamically composes the optimal workflow using all 71 capabilities extracted from the AI Coding Agent runtime system.
+The Workflow Engine is a Python-based system that analyzes any software development task and dynamically composes the optimal workflow using all 71 capabilities extracted from the AI Coding Agent runtime system.
 
 ## Architecture
 
@@ -13,7 +13,7 @@ User Task
 ┌─────────────────────────┐
 │   Task Classifier       │  Analyzes task type, complexity, domain
 │   (task_classifier.py)  │  Maps to SDLC stages
-│                         │  8 task types, 10 domains, 3 complexity levels
+│                         │  6 task types, 11 domains, 3 complexity levels
 └─────────────────────────┘
     │
     ▼
@@ -48,23 +48,19 @@ User Task
 ## File Structure
 
 ```
-D:\College\claude\adaptive-workflow/
-├── SKILL.md                          # Integration skill for AI Coding Agent
-├── main.py                           # Main orchestrator (CLI entry point)
-├── classifier/
-│   └── task_classifier.py            # Task classification engine
-├── registry/
-│   └── capability_registry.py        # 71-capability registry
-├── engine/
-│   ├── workflow_composer.py          # Workflow composition engine
-│   ├── execution_engine.py           # Phase execution engine
-│   └── adaptation_layer.py           # Dynamic adaptation layer
-└── workflows/                        # (future: custom workflow definitions)
+D:\College\claude\agent-os\engines/
+├── workflow-engine.py                # Main orchestrator (CLI entry point)
+├── task_classifier.py                # Task classification engine
+├── capability_registry.py            # 71-capability registry
+├── workflow_composer.py              # Workflow composition engine
+├── execution_engine.py               # Phase execution engine
+├── adaptation_layer.py               # Dynamic adaptation layer
+└── README.md                         # Engine documentation
 ```
 
 ## Components Detail
 
-### 1. Task Classifier (`classifier/task_classifier.py`)
+### 1. Task Classifier (`task_classifier.py`)
 - **8 task types**: requirements_gathering, architecture_design, implementation, testing_qa, deployment_devops, maintenance_monitoring
 - **10 domains**: web, mobile, data_ml, devops, security, general, cli, api, frontend, backend, fullstack
 - **3 complexity levels**: simple, medium, complex
@@ -72,7 +68,7 @@ D:\College\claude\adaptive-workflow/
 - **Confidence scoring** based on keyword density and clarity
 - **Output**: ClassificationResult with task_type, sdlc_stages, complexity, domain, estimated_files, keywords
 
-### 2. Capability Registry (`registry/capability_registry.py`)
+### 2. Capability Registry (`engines/capability_registry.py`)
 - **71 capabilities** cataloged from recovered source analysis:
   - **35 tools**: Bash, FileRead, FileEdit, FileWrite, Grep, Glob, WebSearch, WebFetch, Agent, TodoWrite, AskUserQuestion, Skill, LSP, PowerShell, EnterPlanMode, ExitPlanMode, EnterWorktree, ExitWorktree, ScheduleCron, RemoteTrigger, ToolSearch, Config, Brief, Sleep, SyntheticOutput, TaskCreate, TaskGet, TaskList, TaskUpdate, TaskStop, TaskOutput, TeamCreate, TeamDelete, SendMessage, NotebookEdit
   - **11 agents**: general-purpose, Explore, Plan, verification, agent-code-guide, fork, LocalShellTask, LocalAgentTask, RemoteAgentTask, InProcessTeammateTask, DreamTask
@@ -82,7 +78,7 @@ D:\College\claude\adaptive-workflow/
 - **Each capability** has: name, type, description, stages, source_files, inputs, outputs, dependencies, gating, cost, parallel_safe
 - **Query methods**: get_by_stage, get_by_type, get_available, get_gated, get_parallel_safe, get_dependencies, get_for_workflow
 
-### 3. Workflow Composer (`engine/workflow_composer.py`)
+### 3. Workflow Composer (`workflow_composer.py`)
 - **7 workflow templates**:
   - Requirements Gathering (3 phases)
   - Architecture & Design (3 phases)
@@ -97,22 +93,23 @@ D:\College\claude\adaptive-workflow/
   - Availability-based: filters out unavailable capabilities
 - **Output**: Workflow with phases, capabilities, timeouts, retry counts, failure handling
 
-### 4. Execution Engine (`engine/execution_engine.py`)
+### 4. Execution Engine (`execution_engine.py`)
 - **Phase execution**: parallel-safe capabilities run together, sequential ones run in order
 - **Error handling**: configurable per-phase (abort/continue/skip)
 - **Retry logic**: configurable retry count per phase
 - **Output generation**: detailed execution instructions for each capability
 - **History tracking**: records all executions for analysis
 
-### 5. Adaptation Layer (`engine/adaptation_layer.py`)
-- **6 adaptation types**:
+### 5. Adaptation Layer (`adaptation_layer.py`)
+- **8 adaptation types**:
   - Capability substitution (find alternatives for failed capabilities)
   - Phase merge (combine phases for simple tasks)
   - Phase split (break phases for complex tasks)
   - Timeout adjustment (increase/decrease based on execution time)
+  - Retry adjustment (change retry count on repeated failures)
   - Parallelism change (reduce parallelism on high error rates)
   - Workflow switch (switch to simpler workflow on persistent failures)
-- **Context enrichment**: adds successful outputs to context for next phases
+  - Context enrichment (adds successful outputs to context for next phases)
 - **Failure tracking**: tracks success/failure counts per capability
 
 ## Test Results
@@ -151,23 +148,23 @@ D:\College\claude\adaptive-workflow/
 ### CLI Usage
 ```bash
 # Basic usage
-python main.py "Build a REST API for a todo app"
+python engines/workflow-engine.py "Build a REST API for a todo app"
 
 # With mode and depth
-python main.py "Design the architecture" --mode thorough --depth deep
+python engines/workflow-engine.py "Design the architecture" --mode thorough --depth deep
 
 # JSON output for programmatic use
-python main.py "Fix the login bug" --output json
+python engines/workflow-engine.py "Fix the login bug" --output json
 
 # Fast mode for simple tasks
-python main.py "Add a button" --mode fast
+python engines/workflow-engine.py "Add a button" --mode fast
 ```
 
 ### Skill Usage (in AI Coding Agent)
 ```
-/adaptive-workflow Build a REST API for a todo app
-/adaptive-workflow Design the architecture /thorough
-/adaptive-workflow Fix the login bug /fast
+/workflow Build a REST API for a todo app
+/workflow Design the architecture /thorough
+/workflow Fix the login bug /fast
 ```
 
 ## How It Works

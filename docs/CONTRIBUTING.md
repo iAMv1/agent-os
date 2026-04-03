@@ -6,7 +6,7 @@
 
 1. Create a directory: `skills/my-skill/`
 2. Create `SKILL.md` with the standard format
-3. Follow the skill template in `docs/SKILL-TEMPLATE.md`
+3. Follow the skill template in `templates/skill-template.md`
 4. Submit a PR with a description of what the skill does
 
 ### Improving Existing Skills
@@ -17,8 +17,10 @@
 
 ### Adding Workflows
 
-1. Add workflow definition to `workflows/`
-2. Document the workflow in `docs/`
+Workflows are defined in code in `engines/workflow_composer.py`. To add a new workflow:
+
+1. Add a new template to `_build_templates()` in `workflow_composer.py`
+2. Document the workflow in `docs/WORKFLOW.md`
 3. Submit a PR
 
 ### Reporting Issues

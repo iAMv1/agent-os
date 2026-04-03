@@ -587,9 +587,9 @@ This allows maximum parallelism during the research phase.
 
 ### The Adaptation Layer
 
-From `adaptation_layer.py` in the adaptive workflow engine:
+From `adaptation_layer.py` in the workflow engine:
 
-### 6 Adaptation Types
+### 8 Adaptation Types
 
 | Type | Trigger | Action |
 |------|---------|--------|
@@ -597,8 +597,10 @@ From `adaptation_layer.py` in the adaptive workflow engine:
 | **Phase merge** | Task simpler than expected | Combine workflow phases |
 | **Phase split** | Task more complex than expected | Break phase into sub-phases |
 | **Timeout adjustment** | Execution taking longer | Increase/decrease timeout |
+| **Retry adjustment** | Repeated failures | Change retry count |
 | **Parallelism change** | High error rate | Reduce parallelism |
 | **Workflow switch** | Persistent failures | Switch to simpler workflow |
+| **Context enrichment** | Successful outputs | Add outputs to context for next phases |
 
 ### Capability Substitution Algorithm
 
@@ -700,10 +702,10 @@ ALGORITHM: AccumulateDomainKnowledge(task, findings):
 
 ### Skill Creation from Learned Knowledge
 
-The `/skillify` skill captures session knowledge into reusable skills:
+The skill creation process captures session knowledge into reusable skills:
 
 ```
-Skillify Process (4-round interview):
+Skill Creation Process (4-round interview):
   1. Confirm: What process should be captured?
   2. Details: What are the key steps and decisions?
   3. Step breakdown: Detailed procedure with conditions
